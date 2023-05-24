@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+import 'package:untitled2/model/menu_item.dart';
+
+class MenuItems{
+  static  List<MenuItem> itemFirst = [
+    itemSeeting,
+    itemSeeting2,
+    itemSeeting3,
+
+  ];
+
+  static const MenuItem itemSeeting=  MenuItem(
+    text: "Home",
+    icon: Icons.home_outlined  ,
+  );
+  static const  MenuItem itemSeeting2=   MenuItem(
+    text: "Setting",
+    icon: Icons.settings_outlined  ,
+  );
+  static  const  MenuItem itemSeeting3=   MenuItem(
+    text: "Profile",
+    icon: Icons.man_2_outlined  ,
+  );
+
+}
+
+
+import 'package:flutter/cupertino.dart';
+
+class   MenuItem{
+  final String text;
+  final IconData icon;
+
+  const MenuItem({
+    required this.text,
+    required this.icon
+});
+}
+

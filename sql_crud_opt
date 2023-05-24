@@ -1,0 +1,268 @@
+NotesModal.dart
+
+class NotesModal {
+  int? id;
+  String? title;
+
+  String? email;
+
+  NotesModal({ this.id,this.title,  this.email});
+
+  NotesModal.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    title = json['title'];
+
+    email = json['email'];
+  }
+
+  Map<String, dynamic> toMap() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['title'] = this.title;
+
+    data['email'] = this.email;
+    return data;
+  }
+}
+
+
+
+-------import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:untitled7/notes.dart';
+
+import '../../services/db_handler.dart';
+
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  TextEditingController controllername = TextEditingController();
+  TextEditingController controllerid = TextEditingController();
+  DB_Handler? db_handler ;
+  late Future<List<NotesModal>> noteslist ;
+  var a ;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    db_handler = DB_Handler();
+    loadDate();
+  }
+  loadDate()async{
+    noteslist = db_handler!.getNotesList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return  Scaffold(
+      appBar: AppBar(title: const Text("Home page"),),
+      body: Column(
+
+        children: [
+
+          TextFormField(
+            controller: controllername,
+            decoration: const InputDecoration(
+            hintText: "Name"
+          ),),
+          const SizedBox(height: 20,),
+
+          TextFormField(
+            controller: controllerid,
+            decoration: const InputDecoration(
+                hintText: "Amount"
+            ),),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+
+
+
+            
+
+
+              ElevatedButton(onPressed: (){
+                if(controllerid.text.isEmpty || controllername.text.isEmpty){
+                  print("Please fill all fields");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill all Fields'),
+                      duration: Duration(milliseconds: 400),
+                    ),
+                  );
+
+                }else{
+                  db_handler?.insert(NotesModal(
+
+                      title: controllername.text.toString(),
+
+                      email: controllerid.text.toString()
+                  )
+
+
+                  ).then((value){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Add Successfully'),
+                          duration: Duration(milliseconds: 400),
+                        ));
+                    setState(() {
+                      controllerid.text = "";
+                      controllername.text = "";
+
+                      noteslist = db_handler!.getNotesList();
+                    });
+                    print(value.toString());
+                    print("Add");
+
+
+                  }).onError((error, stackTrace){
+                    print(error.toString());
+                  });
+
+                }
+
+
+
+
+              }, child: const Text("Add")),
+
+              ElevatedButton(onPressed: (){
+
+                if(a!=null){
+                  db_handler!.update(
+                      NotesModal(
+                        id: a,
+                        title: controllername.text,
+                        email:controllerid.text ,
+
+                      )
+                  ).then((value){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Update Successfully'),
+                          duration: Duration(milliseconds: 400),
+                        ));
+
+                  });
+                  setState(() {
+                    controllerid.text = "";
+                    controllername.text = "";
+
+                    noteslist = db_handler!.getNotesList();
+                  });
+
+
+
+
+                }else{
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Update Not Possible'),
+                        duration: Duration(milliseconds: 400),
+                      ));
+
+
+                }
+
+
+
+              }, child: const Text("Udate")),
+
+            ],
+          ),
+
+
+
+
+
+          Expanded(
+            child: FutureBuilder(
+              future:  noteslist,
+                builder: (context, AsyncSnapshot<List<NotesModal>> snapshot){
+                if(snapshot.hasData){
+                  return ListView.builder(itemCount: snapshot.data!.length,
+                      itemBuilder: (context,index){
+                        return InkWell(
+                          onLongPress: (){
+                            a = snapshot.data![index].id!;
+
+
+
+
+
+
+                            controllername.text  = snapshot.data![index].title!;
+                            controllerid.text = snapshot.data![index].email!;
+
+                            // db_handler!.update(
+                            //     NotesModal(
+                            //       id: snapshot.data![index].id!,
+                            //       title: snapshot.data![index].title!,
+                            //       email:snapshot.data![index].email! ,
+                            //
+                            //     )
+                            // ).then((value) {
+                            //   print("Update");
+                            // });
+                            // setState(() {
+                            //   noteslist = db_handler!.getNotesList();
+                            // }
+                            // );
+
+                          },
+                          child: Card(
+                            child: ListTile(
+
+                              title: Text(snapshot.data![index].title.toString()),
+                              subtitle: Text(snapshot.data![index].email.toString()),
+                              trailing: GestureDetector(
+                                  onTap: (){
+                                    setState(() {
+                                      db_handler!.delete(snapshot.data![index].id!).then((value){
+                                        print("delete");
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Delete Successfully'),
+                                              duration: Duration(milliseconds: 400),
+                                            ));
+                                      });
+                                      noteslist= db_handler!.getNotesList();
+                                      snapshot.data!.remove(snapshot.data![index]);
+
+                                    });
+
+                                  },
+
+                                  child: const Icon(Icons.delete,color: Colors.red,)),
+                            ),
+
+                          ),
+                        );
+
+
+                      });
+
+
+                }else{
+                  return Container();
+                }
+
+
+            }),
+          )
+
+        ],
+
+      ),
+    );
+  }
+}
+
+---

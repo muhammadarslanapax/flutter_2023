@@ -1,0 +1,30 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:untitled4/themeprovider2.dart';
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  bool disktop(BuildContext context)=>    MediaQuery.of(context).size.width>=600;
+  bool mobile(BuildContext context)=>    MediaQuery.of(context).size.width<600;
+
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<ThemeProvider>(context, listen: false).loadThemeMode();
+  }
+
+  @override
+  Widget build(BuildContext context) =>OrientationBuilder(
+      builder: (context,orientation){
+        final isPotrait =orientation==Orientation.portrait;
+        final mob =MediaQuery.of(context).size.shortestSide<600;
+        return isPotrait ?Container(child: Center(child: Text("Poetrati"),),):Container(child: Center(child: Text("LandScap"),),);
+      }
+  );
+
+}

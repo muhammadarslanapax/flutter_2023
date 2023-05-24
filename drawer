@@ -1,0 +1,112 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../../home.dart';
+import '../setting.dart';
+import '../test.dart';
+
+class NavigationDrawer12 extends StatelessWidget {
+  const NavigationDrawer12({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => Drawer(
+    child: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          buildHeader(context),
+          buildMenuItem(context),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget buildHeader(BuildContext context) => Material(
+  color: Colors.blue,
+  child: InkWell(
+    onTap: () {
+      Navigator.pop(context);
+
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const Test()));
+    },
+    child: Container(
+      padding: EdgeInsets.only(
+          top: 24 + MediaQuery.of(context).padding.top, bottom: 24),
+      child: Column(
+        children: const [
+          CircleAvatar(
+            radius: 52,
+          ),
+          SizedBox(
+            height: 12,
+          ),
+          Text(
+            "Sarah",
+            style: TextStyle(fontSize: 28, color: Colors.red),
+          ),
+          Text(
+            "Sarah",
+            style: TextStyle(fontSize: 16, color: Colors.red),
+          ),
+        ],
+      ),
+    ),
+  ),
+);
+
+Widget buildMenuItem(BuildContext context) => Container(
+  padding: const EdgeInsets.all(24),
+  child: Wrap(
+    runSpacing: 16,
+    children: [
+      ListTile(
+        leading: const Icon(Icons.home_outlined),
+        title: const Text("Home"),
+        onTap: () {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const Dashboard()));
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.settings_outlined),
+        title: const Text("Setting"),
+        onTap: () {
+          Navigator.pop(context);
+
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Setting()));
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.person_off_outlined),
+        title: const Text("Profile"),
+        onTap: () {},
+      ),
+      const Divider(
+        color: Colors.black54,
+      ),
+      ListTile(
+        leading: const Icon(Icons.home_outlined),
+        title: const Text("Test"),
+        onTap: () {
+          Navigator.pop(context);
+
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Test()));
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.settings_outlined),
+        title: const Text("Setting"),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: const Icon(Icons.person_off_outlined),
+        title: const Text("Profile"),
+        onTap: () {},
+      ),
+    ],
+  ),
+);

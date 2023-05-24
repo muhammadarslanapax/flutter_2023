@@ -1,0 +1,234 @@
+res/componests/
+
+
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../color.dart';
+import '../constants/styles.dart';
+
+class CustomField extends StatelessWidget {
+  const CustomField({
+    super.key,
+    required TextEditingController nameController,
+    required this.inputType,
+    this.obscureText = false,
+    required this.validator,
+  }) : _nameController = nameController;
+
+  final TextEditingController _nameController;
+  final TextInputType inputType;
+  final bool obscureText;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      keyboardType: inputType,
+      decoration: InputDecoration(
+        filled: true,
+
+        fillColor: AppColors.textFieldBgColor,
+        border: Styles().texFormStyle(),
+      ),
+      validator: validator ,
+      controller: _nameController,
+    );
+  }
+}
+
+
+-----------------
+
+import 'package:flutter/material.dart';
+
+import '../../view/home/category/booking_page.dart';
+
+class CustomTextField extends StatefulWidget {
+  // final String hint;
+  final TextEditingController controller;
+
+
+
+
+  final Color baseColor;
+  // final Color borderColor;
+  final Color errorColor;
+  final TextInputType inputType;
+  final bool obscureText;
+  final Function validator;
+  final Function onChanged;
+
+  CustomTextField(
+      {
+        // required this.hint,
+        required this.controller,
+        required this.onChanged,
+        required this.baseColor,
+        // required this.borderColor,
+        required this.errorColor,
+        this.inputType = TextInputType.text,
+        this.obscureText = false,
+        required this.validator});
+
+  _CustomTextFieldState createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  late Color currentColor;
+
+  @override
+  void initState() {
+    super.initState();
+    // currentColor = widget.borderColor;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Card(
+      elevation: 0.0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: currentColor, width: 2.0),
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.0),
+        child: TextField(
+          obscureText: widget.obscureText,
+          onChanged: (text) {
+            if (widget.onChanged != null) {
+              widget.onChanged(text);
+            }
+            setState(() {
+              if (!widget.validator(text) || text.length == 0) {
+                currentColor = widget.errorColor;
+              } else {
+                currentColor = widget.baseColor;
+              }
+            });
+          },
+          //keyboardType: widget.inputType,
+          controller: widget.controller,
+          decoration: InputDecoration(
+            hintStyle: TextStyle(
+              color: widget.baseColor,
+              fontFamily: "OpenSans",
+              fontWeight: FontWeight.w300,
+            ),
+            border: InputBorder.none,
+            filled: true,
+            // hintText: widget.hint,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+-----------------
+
+App bar :
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../color.dart';
+
+class CustomAppBar extends StatelessWidget {
+  final String text ;
+  final Color txtcolor;
+  final IconData?  iconData ;
+
+
+
+  const CustomAppBar({
+    super.key, required this.text, required this.txtcolor,  this.iconData,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppColors.whiteColor,
+      elevation: 0,
+      title: Text(
+        "$text",
+        style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: txtcolor),
+      ),
+      centerTitle: true,
+      leading: IconButton(
+        onPressed: () {},
+        icon: Icon(
+          iconData,
+          color: AppColors.blackColor,
+        ),
+      ),
+    );
+  }
+}
+
+
+
+--------
+
+custom tab:
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../color.dart';
+
+class CustomTab extends StatelessWidget {
+  var title ;
+   CustomTab({
+    super.key,
+     required this.title
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tab(
+      child: Container(
+        height: 35,
+        width: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.text_color_light,width: 1),
+
+        ),child:  Align(
+        alignment: Alignment.center,
+        child: Text(title.toString()),
+      ),
+      ),
+    );
+  }
+}
+
+
+------------- --------------------------- ----------------------- 
+
+res / stype :
+
+
+text theme :
+TextTheme myTextTheme = TextTheme(
+  headline1: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+  headline2: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  bodyText1: TextStyle(fontSize: 16),
+  bodyText2: TextStyle(fontSize: 14, color: Colors.grey),
+  // Add more text styles as needed
+);
+
+----------------------
+
+
+
+

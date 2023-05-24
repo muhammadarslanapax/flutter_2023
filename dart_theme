@@ -1,0 +1,84 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ThemeProvider with ChangeNotifier{
+  var _themeMode = ThemeMode.light;
+  static const _themeModeKey = 'theme_mode';
+  ThemeProvider() {
+    _loadThemeMode();
+  }
+  ThemeMode get themeMode => _themeMode;
+  void setTheme(themeMode) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    _themeMode = themeMode;
+    prefs.setInt(_themeModeKey, themeMode.index);
+
+    notifyListeners();
+  }
+
+
+  void _loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final index = prefs.getInt(_themeModeKey);
+    if (index != null) {
+      _themeMode = ThemeMode.values[index];
+      notifyListeners();
+    }
+  }
+
+}
+
+---
+
+
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:untitled7/provider/themeprovider.dart';
+import 'package:untitled7/utils/routes_name.dart';
+import 'package:untitled7/views/botom_nav/bottom_nav.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+  );
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(providers: [
+      ChangeNotifierProvider(create: (_)=>ThemeProvider())
+    ],
+        child:Builder(builder: (BuildContext context) {
+          final provider =  Provider.of<ThemeProvider>(context);
+         return MaterialApp(
+           debugShowCheckedModeBanner: false,
+            home: BottomNav(),
+            themeMode: provider.themeMode,
+           darkTheme: ThemeData(
+             brightness: Brightness.dark,
+           ),
+           theme: ThemeData(
+
+             colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.green).copyWith(secondary: Colors.red)
+           ),
+           // onGenerateInitialRoutes: ,
+           // initialRoute: ,
+          );
+        },)
+
+    );
+
+  }
+}
+
+------------------------

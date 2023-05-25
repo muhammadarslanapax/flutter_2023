@@ -130,3 +130,155 @@ class TabItem {
 
   const TabItem({required this.text});
 }
+
+
+======
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Custom Tab Bar Example'),
+        ),
+        body: CustomTabBarWithListView(),
+      ),
+    );
+  }
+}
+
+class CustomTabBarWithListView extends StatefulWidget {
+  @override
+  _CustomTabBarWithListViewState createState() =>
+      _CustomTabBarWithListViewState();
+}
+
+class _CustomTabBarWithListViewState extends State<CustomTabBarWithListView> {
+  int _selectedIndex = 0;
+
+  void _onTabSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CustomTabBar(
+          tabs: [
+            TabItem(text: 'Tab 1'),
+            TabItem(text: 'Tab 2'),
+            TabItem(text: 'Tab 3'),
+          ],
+          selectedIndex: _selectedIndex,
+          onTabSelected: _onTabSelected,
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: 10,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text('Item $index'),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CustomTabBar extends StatelessWidget {
+  final List<TabItem> tabs;
+  final int selectedIndex;
+  final Function(int) onTabSelected;
+
+  const CustomTabBar({
+    required this.tabs,
+    required this.selectedIndex,
+    required this.onTabSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[200],
+      child: Row(
+        children: tabs.asMap().entries.map((entry) {
+          final index = entry.key;
+          final tabItem = entry.value;
+
+          final isSelected = index == selectedIndex;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onTabSelected(index),
+              child: Container(
+                color: isSelected ? Colors.blue : Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Center(
+                  child: Text(
+                    tabItem.text,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class TabItem {
+  final String text;
+
+  const TabItem({required this.text});
+}
+=====
+
+import 'package:flutter/material.dart';
+
+class ReusableListView extends StatelessWidget {
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+
+  ReusableListView({
+    required this.itemCount,
+    required this.itemBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: itemCount,
+      itemBuilder: itemBuilder,
+    );
+  }
+}
+
+ReusableListView(
+itemCount: 10,
+itemBuilder: (context, index) {
+return ListTile(
+title: Text('Item $index'),
+);
+},
+)
+
+
+

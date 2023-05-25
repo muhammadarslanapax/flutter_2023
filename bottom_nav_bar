@@ -1,0 +1,126 @@
+
+class BottomNavigationModel {
+  int selectedIndex;
+
+  BottomNavigationModel({this.selectedIndex = 0});
+}
+
+
+
+
+
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import '../models/bottom_navigation_model.dart';
+
+class BottomNavigationViewModel extends ChangeNotifier {
+  final BottomNavigationModel model;
+
+  BottomNavigationViewModel({required this.model});
+
+  void changeTab(int index) {
+    model.selectedIndex = index;
+    notifyListeners();
+  }
+}
+
+ChangeNotifierProvider<BottomNavigationViewModel> bottomNavigationProvider({
+  required Widget child,
+  required BottomNavigationModel model,
+}) {
+  return ChangeNotifierProvider<BottomNavigationViewModel>(
+    create: (_) => BottomNavigationViewModel(model: model),
+    child: child,
+  );
+}
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../view_models/bottom_navigation_view_model.dart';
+
+class BottomNavigationView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<BottomNavigationViewModel>(context);
+    final selectedIndex = viewModel.model.selectedIndex;
+
+    return Scaffold(
+      body: _getBody(selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+        onTap: viewModel.changeTab,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getBody(int selectedIndex) {
+    switch (selectedIndex) {
+      case 0:
+        return HomeView();
+      case 1:
+        return SearchView();
+      case 2:
+        return ProfileView();
+      default:
+        return Container();
+    }
+  }
+}
+
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'models/bottom_navigation_model.dart';
+import 'views/bottom_navigation_view.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Bottom Navigation',
+      home: bottomNavigationProvider(
+        child: BottomNavigationView(),
+        model: BottomNavigationModel(),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+

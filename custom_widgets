@@ -229,6 +229,50 @@ TextTheme myTextTheme = TextTheme(
 
 ----------------------
 
+custom button:
+
+import 'dart:ffi';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+class CustomBtn extends StatelessWidget {
+  final String text;
+  final Color backgroundColor;
+  final Color textColor;
+  final double size;
+  final Function()? onpress;
+
+  const CustomBtn(
+      {Key? key,
+      required this.text,
+      required this.backgroundColor,
+      required this.textColor,
+      required this.onpress,
+      required this.size})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onpress,
+      child: Container(
+          width: double.infinity,
+          height: 50,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+              child: Text(
+            text,
+            style: TextStyle(color: textColor, fontSize: size),
+          ))),
+    );
+  }
+}
+-----------------------
+
 
 
 

@@ -33,3 +33,100 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+
+===========
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Custom Tab Bar Example'),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(48.0),
+            child: CustomTabBar(
+              tabs: [
+                TabItem(text: 'Tab 1'),
+                TabItem(text: 'Tab 2'),
+                TabItem(text: 'Tab 3'),
+              ],
+            ),
+          ),
+        ),
+        body: Container(
+          child: Center(
+            child: Text('Custom Tab Bar Example'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomTabBar extends StatefulWidget {
+  final List<TabItem> tabs;
+
+  const CustomTabBar({required this.tabs});
+
+  @override
+  _CustomTabBarState createState() => _CustomTabBarState();
+}
+
+class _CustomTabBarState extends State<CustomTabBar> {
+  int _selectedIndex = 0;
+
+  void _onTabSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[200],
+      child: Row(
+        children: widget.tabs.asMap().entries.map((entry) {
+          final index = entry.key;
+          final tabItem = entry.value;
+
+          final isSelected = index == _selectedIndex;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _onTabSelected(index),
+              child: Container(
+                color: isSelected ? Colors.blue : Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Center(
+                  child: Text(
+                    tabItem.text,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class TabItem {
+  final String text;
+
+  const TabItem({required this.text});
+}

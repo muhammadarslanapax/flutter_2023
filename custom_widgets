@@ -273,6 +273,53 @@ class CustomBtn extends StatelessWidget {
 }
 -----------------------
 
+TextFiled:
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+class CustomField extends StatelessWidget {
+  const CustomField({
+    super.key,
+    required TextEditingController nameController,
+    required this.inputType,
+    this.obscureText = false,
+    required this.validator,
+    this.fill,
+    this.fillColor,
+    this.label,
+    this.hint,
+  }) : _nameController = nameController;
+
+  final TextEditingController _nameController;
+  final TextInputType inputType;
+  final bool obscureText;
+  final bool? fill;
+  final Color? fillColor;
+  final String? Function(String?)? validator;
+  final String? label;
+  final String? hint;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+
+      obscureText: obscureText,
+      keyboardType: inputType,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        label: Text("$label"),
+        hintText: "$hint",
+        filled: fill,
+        fillColor: fillColor,
+      ),
+      validator: validator,
+      controller: _nameController,
+    );
+  }
+}
+
+====================
 
 
 

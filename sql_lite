@@ -1,0 +1,360 @@
+step 1:
+add dependencies:
+ sqflite: ^2.2.6
+  path_provider: ^2.0.13
+  get: ^4.6.5
+  
+  ======
+   step:2:
+  models/notes:
+  
+  
+  class NotesModel{
+  final int? id;
+  final String title;
+  final String description;
+  NotesModel({this.id,required this.title,required this.description});
+
+
+NotesModel.fromMap(Map<String,dynamic> res):
+      id=res['id'],
+      title=res['title'],
+      description=res['description'];
+
+Map<String,Object?>toMap(){
+  return{
+    'id':id,
+    'title':title,
+    'description':description,  };}}
+    
+    ======= 
+    
+    step 3:
+
+db_handler.dart::
+
+import 'package:camera/models/notes.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'dart:io' as io;
+
+class DBHelper{
+  static Database? _db;
+  Future<Database?> get db async{
+    if(_db!=null){
+      return _db;
+
+    }
+    _db=await initDatabase();
+    return _db;
+  }
+
+  initDatabase()async{
+    io.Directory documentDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentDirectory.path,'notes.db');
+    var db = await openDatabase(path,version: 1,onCreate: _onCrete);
+    return db;
+  }
+
+  _onCrete(Database db,int version)async{
+
+    await db.execute(
+
+    "CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT , title TEXT NOT NULL, description NOT NULL)"
+
+    );
+
+  }
+
+  Future<NotesModel> insert(NotesModel notesModel)async{
+    var dbClient = await db;
+    await dbClient!.insert('notes', notesModel.toMap());
+    return notesModel;
+  }
+  Future<List<NotesModel>> getNotesList()async{
+    var dbClient = await db;
+    final List<Map<String,Object?>> queryResult =await dbClient!.query('notes');
+    return queryResult.map((e) => NotesModel.fromMap(e)).toList();
+  }
+
+
+
+  Future<int> delete(int id)async{
+    var dbClient = await db;
+    return dbClient!.delete(
+
+      'notes',
+      where: 'id=?',
+      whereArgs: [id]
+
+    );
+  }
+
+
+
+  Future<int> update(NotesModel notesModel)async{
+    var dbClient = await db;
+    return await dbClient!.update('notes',
+      notesModel.toMap(),
+      where:'id=?',
+      whereArgs: [notesModel.id]
+
+    );
+
+
+
+  }
+
+
+}
+========
+
+
+step 4:
+
+
+add:
+import 'package:camera/models/notes.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/route_manager.dart';
+
+import 'db_handler.dart';
+import 'main.dart';
+
+class Add extends StatefulWidget {
+  const Add({Key? key}) : super(key: key);
+
+  @override
+  State<Add> createState() => _AddState();
+}
+
+class _AddState extends State<Add> {
+  DBHelper? dbHelper;
+
+  TextEditingController _titlecontroler = TextEditingController();
+  TextEditingController _descriptionontroler = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    dbHelper = DBHelper();
+
+  }
+
+  _addFun() {
+    if (_titlecontroler.text.isNotEmpty &&
+        _descriptionontroler.text.isNotEmpty) {
+      print(_titlecontroler.text.toString());
+
+
+      dbHelper?.insert(NotesModel(title: _titlecontroler.text.toString(), description: _descriptionontroler.text.toString()
+      )
+      )
+          .then((value) {
+
+        Get.snackbar(
+          "ok",
+          " add successfully",
+          snackPosition: SnackPosition.TOP,
+          colorText: Colors.white,
+          borderRadius: 10,
+          backgroundColor: Colors.green,
+        );
+        Get.to(()=> const MyHomePage());
+
+
+      }
+
+      ).onError((error, stackTrace){
+
+      });
+
+
+    } else {
+
+      Get.snackbar(
+        "alert",
+        " please provide title and description",
+        snackPosition: SnackPosition.TOP,
+        colorText: Colors.white,
+        borderRadius: 10,
+        backgroundColor: Colors.red,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 20,
+              ),
+              TextFormField(
+                controller: _titlecontroler,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), labelText: "title"),
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              TextFormField(
+                maxLength: 4,
+                controller: _descriptionontroler,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), labelText: "description"),
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              Container(
+                height: 50,
+                width: MediaQuery.of(context).size.width,
+                color: Colors.blue,
+                child: ElevatedButton(
+                  onPressed: () {
+                    _addFun();
+                  },
+                  child: Text("Add"),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+=========
+
+step 5:
+
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'add.dart';
+import 'db_handler.dart';
+import 'models/notes.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  late Future<List<NotesModel>> notesList;
+  DBHelper? dbHelper;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    dbHelper = DBHelper();
+    load();
+  }
+
+  load() async {
+    notesList = dbHelper!.getNotesList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder(
+                future: notesList,
+                builder: (context, AsyncSnapshot<List<NotesModel>> snapsot) {
+                  if (snapsot.hasData) {
+                    return ListView.builder(
+                        itemCount: snapsot.data!.length,
+                        itemBuilder: (context, index) {
+                          return InkWell(
+                            onTap: () {
+                              dbHelper!.update(NotesModel(
+                                  id: snapsot.data![index].id!,
+                                  title: "ok1",
+                                  description: "ok1"));
+                              setState(() {
+                                notesList = dbHelper!.getNotesList();
+                              });
+                            },
+                            child: Dismissible(
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                color: Colors.red,
+                                child: const Icon(Icons.delete_forever),
+                              ),
+                              onDismissed: (DismissDirection direction) {
+                                setState(() {
+                                  dbHelper!.delete(snapsot.data![index].id!);
+                                  notesList = dbHelper!.getNotesList();
+                                  snapsot.data?.remove(snapsot.data![index]);
+                                });
+                              },
+                              key: ValueKey<int>(snapsot.data![index].id!),
+                              child: Card(
+                                child: ListTile(
+                                  trailing: Text(
+                                      snapsot.data![index].title.toString()),
+                                  title: Text(snapsot.data![index].description
+                                      .toString()),
+                                ),
+                              ),
+                            ),
+                          );
+                        });
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                }),
+          )
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Get.to(() => Add());
+        },
+        child: const Text("Add"),
+      ),
+    );
+  }
+}
+
+    
+    
+    
+

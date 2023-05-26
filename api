@@ -1,0 +1,102 @@
+how to make api call:
+how to get api:
+jsonplaceholder.com
+1-packages:
+hppt
+2-make modal class
+
+class UserModel {
+  int? userId;
+  int? id;
+  String? title;
+  String? body;
+
+  UserModel({this.userId, this.id, this.title, this.body});
+
+  UserModel.fromJson(Map<dynamic, dynamic> json) {
+    userId = json['userId'];
+    id = json['id'];
+    title = json['title'];
+    body = json['body'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['userId'] = this.userId;
+    data['id'] = this.id;
+    data['title'] = this.title;
+    data['body'] = this.body;
+    return data;
+  }
+}
+
+
+
+3- make future function :
+
+
+import 'dart:convert';
+
+import 'modaluser.dart';
+import 'package:http/http.dart' as http;
+
+
+List<UserModel> postList = [];
+Future<List<UserModel>> getapi()  async {
+  final response =  await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
+  var data  = jsonDecode(response.body.toString());
+  if(response.statusCode == 200){
+    for(Map  i in data ){
+      postList.add(UserModel.fromJson(i));
+      // UserModel user = UserModal(title:i['title']);
+      //postList.add(user);
+
+
+    }
+    return postList;
+
+
+  }else{
+    return postList;
+
+  }
+
+}
+
+
+4_ in main:
+
+ return  Scaffold(
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder(
+              future: getapi(),
+                builder: (context,snapshpt){
+                if(!snapshpt.hasData){
+
+                  return CircularProgressIndicator();
+
+                }else{
+                  return ListView.builder(
+                    itemCount: postList.length,
+                      itemBuilder: (context,index){
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          color: Colors.green,
+                          margin: EdgeInsets.all(10),
+                            child: Card(child: Text(postList![index]!.title.toString()))),
+                      );
+
+
+                  });
+
+                }
+
+
+            }),
+          )
+        ],
+      ),
+    );

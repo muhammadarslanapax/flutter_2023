@@ -602,3 +602,60 @@ class _LoginState extends State<Login> {
 
 
 -------------------------------------
+
+
+
+
+import 'package:http/http.dart' as http;
+
+// Function to delete data using REST API
+Future<void> deleteData(String id) async {
+  String apiUrl = 'https://api.example.com/data/$id'; // Replace with your API endpoint
+
+  try {
+    var response = await http.delete(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      print('Data deleted successfully');
+    } else {
+      print('Failed to delete data. Error: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
+// Function to update data using REST API
+Future<void> updateData(String id, Map<String, dynamic> updatedData) async {
+  String apiUrl = 'https://api.example.com/data/$id'; // Replace with your API endpoint
+
+  try {
+    var response = await http.put(Uri.parse(apiUrl), body: updatedData);
+
+    if (response.statusCode == 200) {
+      print('Data updated successfully');
+    } else {
+      print('Failed to update data. Error: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
+// Usage:
+void main() {
+  // Delete data
+  deleteData('1234'); // Pass the ID of the data to delete
+
+  // Update data
+  Map<String, dynamic> updatedData = {
+    'name': 'John Doe',
+    'age': 30,
+    // Include other updated fields as needed
+  };
+  updateData('1234', updatedData); // Pass the ID of the data to update and the updated data
+}
+
+
+
+======================

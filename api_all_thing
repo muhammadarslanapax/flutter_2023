@@ -1,0 +1,604 @@
+import 'dart:convert';
+
+import '../modal/modal.dart';
+import 'package:http/http.dart' as http;
+
+class Services{
+
+  List<ClassModal> postList=[];
+
+  Future<List<ClassModal>> getPostApi()async{
+    final response = await http.get(Uri.parse("https://jsonplaceholder.typicode.com/posts"));
+    final data = jsonDecode(response.body.toString());
+    if(response.statusCode == 200){
+
+      for (Map i in data){
+        postList.add(ClassModal.fromJson(i));
+      }
+      return postList;
+
+    }else{
+      return postList ;
+    }
+
+
+
+  }
+
+}
+
+-----
+
+
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart'as http;
+import 'package:untitled16/seconde.dart';
+import 'package:untitled16/services/services.dart';
+
+import 'modal/modal.dart';
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+
+
+
+
+
+  }
+  @override
+  Widget build(BuildContext context) {
+    Services services = Services();
+
+    var l = services.getPostApi();
+
+    var list = services.postList;
+    return  Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+          FutureBuilder(
+            future: l,
+              builder: (context, snapshot){
+            if(!snapshot.hasData){
+              return Center(child: CircularProgressIndicator());
+            }else{
+
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: list.length,
+                    itemBuilder:(context,index){
+
+                    print(list[index].body.toString());
+
+                    return Card(
+                      child: ListTile(
+                        onTap: (){
+
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> Seconde(body: list[index].body.toString(),)));
+                        },
+
+
+                        leading: Text(list[index].id.toString()),
+                        subtitle: Text(list[index].title.toString()),
+                      ),
+
+                    );
+
+                }),
+              );
+
+            }
+
+    })
+
+        ],
+      ),
+    );
+  }
+}
+
+
+==========================================================================================
+
+class UserModal {
+  int? id;
+  String? name;
+  String? username;
+  String? email;
+  Address? address;
+  String? phone;
+  String? website;
+  Company? company;
+
+  UserModal(
+      {this.id,
+        this.name,
+        this.username,
+        this.email,
+        this.address,
+        this.phone,
+        this.website,
+        this.company});
+
+  UserModal.fromJson(Map<dynamic, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    username = json['username'];
+    email = json['email'];
+    address =
+    json['address'] != null ? new Address.fromJson(json['address']) : null;
+    phone = json['phone'];
+    website = json['website'];
+    company =
+    json['company'] != null ? new Company.fromJson(json['company']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['username'] = this.username;
+    data['email'] = this.email;
+    if (this.address != null) {
+      data['address'] = this.address!.toJson();
+    }
+    data['phone'] = this.phone;
+    data['website'] = this.website;
+    if (this.company != null) {
+      data['company'] = this.company!.toJson();
+    }
+    return data;
+  }
+}
+
+class Address {
+  String? street;
+  String? suite;
+  String? city;
+  String? zipcode;
+  Geo? geo;
+
+  Address({this.street, this.suite, this.city, this.zipcode, this.geo});
+
+  Address.fromJson(Map<String, dynamic> json) {
+    street = json['street'];
+    suite = json['suite'];
+    city = json['city'];
+    zipcode = json['zipcode'];
+    geo = json['geo'] != null ? new Geo.fromJson(json['geo']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['street'] = this.street;
+    data['suite'] = this.suite;
+    data['city'] = this.city;
+    data['zipcode'] = this.zipcode;
+    if (this.geo != null) {
+      data['geo'] = this.geo!.toJson();
+    }
+    return data;
+  }
+}
+
+class Geo {
+  String? lat;
+  String? lng;
+
+  Geo({this.lat, this.lng});
+
+  Geo.fromJson(Map<String, dynamic> json) {
+    lat = json['lat'];
+    lng = json['lng'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['lat'] = this.lat;
+    data['lng'] = this.lng;
+    return data;
+  }
+}
+
+class Company {
+  String? name;
+  String? catchPhrase;
+  String? bs;
+
+  Company({this.name, this.catchPhrase, this.bs});
+
+  Company.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    catchPhrase = json['catchPhrase'];
+    bs = json['bs'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['name'] = this.name;
+    data['catchPhrase'] = this.catchPhrase;
+    data['bs'] = this.bs;
+    return data;
+  }
+}
+
+
+---------------
+import 'dart:convert';
+
+import '../modal/modal.dart';
+import 'package:http/http.dart' as http;
+
+import '../modal/user.dart';
+
+class Services{
+
+  List<UserModal> postList=[];
+
+  // Future<List<ClassModal>> getPostApi()async{
+  //   final response = await http.get(Uri.parse("https://jsonplaceholder.typicode.com/posts"));
+  //   final data = jsonDecode(response.body.toString());
+  //   if(response.statusCode == 200){
+  //
+  //     for (Map i in data){
+  //       postList.add(ClassModal.fromJson(i));
+  //     }
+  //     return postList;
+  //
+  //   }else{
+  //     return postList ;
+  //   }
+  //
+  //
+  //
+  // }
+
+
+
+
+
+  Future<List<UserModal>> getPostApi()async{
+    final response = await http.get(Uri.parse("https://jsonplaceholder.typicode.com/users"));
+    final data = jsonDecode(response.body.toString());
+    if(response.statusCode == 200){
+
+      for (Map i in data){
+        postList.add(UserModal.fromJson(i));
+      }
+      return postList;
+
+    }else{
+      return postList ;
+    }
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+------------------------
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart'as http;
+import 'package:untitled16/seconde.dart';
+import 'package:untitled16/services/services.dart';
+
+import 'modal/modal.dart';
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+
+
+
+
+
+  }
+  @override
+  Widget build(BuildContext context) {
+    Services services = Services();
+
+    var l = services.getPostApi();
+
+    var list = services.postList;
+    return  Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+          FutureBuilder(
+            future: l,
+              builder: (context, snapshot){
+            if(!snapshot.hasData){
+              return Center(child: CircularProgressIndicator());
+            }else{
+
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: list.length,
+                    itemBuilder:(context,index){
+
+                    print(list[index].address?.city.toString());
+
+                    return Card(
+                      child: ListTile(
+                        onTap: (){
+
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=> Seconde(body: list[index].id.toString(),)));
+                        },
+
+
+                        leading: Text(list[index].id.toString()),
+                        subtitle: Text(list[index].address!.geo!.lat.toString()),
+                      ),
+
+                    );
+
+                }),
+              );
+
+            }
+
+    })
+
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+----------------
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:untitled16/modal/user.dart';
+
+class Seconde extends StatefulWidget {
+  final UserModal  body ;
+  const Seconde({Key? key, required this.body}) : super(key: key);
+
+  @override
+  State<Seconde> createState() => _SecondeState();
+}
+
+class _SecondeState extends State<Seconde> {
+  @override
+  Widget build(BuildContext context) {
+    return  Scaffold(
+      body: Center(child: ListTile(
+        leading: Text(widget.body.address!.street.toString()),
+        trailing:Text(widget.body.address!.geo!.lat.toString()) ,
+      ),),
+    );
+  }
+}
+
+
+----------------------------------------------------------------------
+
+
+Login data :
+
+
+Future <void> postApiLogin(
+      BuildContext context,
+      String email, String password)async{
+
+    try{
+      Response response =await post(Uri.parse("https://reqres.in/api/register"),body: {
+
+
+          "email": "eve.holt@reqres.in",
+          "password": "pistol"
+
+      });
+
+      if(response.statusCode == 200){
+
+        var data = jsonDecode(response.body.toString());
+
+        print(data["id"].toString());
+
+        print("Successfully login");
+
+
+       // Navigator.push(context, MaterialPageRoute(builder: (context)=> HomePage()));
+
+
+
+      }else{
+        print("Somthing wrong");
+      }
+
+    }catch(e){
+      print(e.toString());
+    }
+
+
+
+
+
+
+
+  }
+  
+  
+  
+  
+  
+  =====================================================================================
+  
+  
+  upload image ant other stuff :
+  
+  import 'dart:io' ;
+
+import 'package:path/path.dart';
+import 'package:http/http.dart' as http;
+
+
+import 'package:flutter/cupertino.dart';
+import 'package:path/path.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:untitled16/services/services.dart';
+
+class Login extends StatefulWidget {
+  const Login({Key? key}) : super(key: key);
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+
+  File? image ;
+  final _picker = ImagePicker();
+
+  Future getimage()async{
+    final pickimge = await _picker.pickImage(source: ImageSource.camera,imageQuality: 100);
+
+
+     image = File(pickimge!.path);
+
+
+
+    setState(() {
+      
+    });
+
+    uploadImage();
+    
+  }
+
+  Future<void>uploadImage() async {
+    var stream  = http.ByteStream(image!.openRead());
+    stream.cast();
+    var length=await  image!.length();
+    var uri = Uri.parse("https://fakestoreapi.com/products");
+
+    var request = new http.MultipartRequest("POST", uri);
+    request.fields["title"] = "MY name is arsla n";
+
+    var multiple = new http.MultipartFile('image', stream, length);
+
+
+    request.files.add(multiple);
+
+    var res = await request.send();
+    if(res.statusCode== 200){
+
+      print("Image upload");
+
+    }else{
+      print("Faild");
+
+    }
+
+
+
+
+
+
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+
+    Services services = Services();
+    return  Scaffold(
+
+
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+          Container(
+            width: 200,
+            height: 200,
+
+            child: image == null
+                ? Text("Empty")
+                : Image.file(
+              File(image!.path).absolute,
+              width: 100,
+              height: 100,
+            ),
+
+          ),
+          Center(
+            child: ElevatedButton(onPressed: (){
+
+              getimage();
+
+
+
+
+
+
+            //  services.postApiLogin(context, "123", "123");
+
+
+            }, child: Text("Login")
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+-------
+
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+
+
+-------------------------------------

@@ -1,0 +1,114 @@
+  PreferredSize appBarView(ChatBotProvider state) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(AppBar().preferredSize.height),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: !state.isFilePreview
+            ? AppBar(
+                key: const Key('defaultAppBar'),
+                automaticallyImplyLeading: false,
+                elevation: 0.0,
+                backgroundColor: AppColors.HeaderColor,
+                title: Row(
+                  //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Builder(builder: (context) {
+                      return GestureDetector(
+                        onTap: () async {
+                          print(await state.checkMicrophonePermission());
+                          //state.requestMicrophonePermission();
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: Image.asset(
+                          'assets/splah.png',
+                          fit: BoxFit.contain,
+                          height:
+                              ResponsiveBuilder.isDesktop(context) ? 80 : 40,
+                          width: ResponsiveBuilder.isDesktop(context) ? 80 : 40,
+                        ),
+                      );
+                    }),
+                    Column(
+                      children: [
+                        const Text(
+                          AppConstants.APP_NAME,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        if (state.isShowTyping)
+                          const Text(
+                            "Ssebowa is typing...",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          )
+                      ],
+                    ),
+                    Spacer(),
+                    InkWell(
+                      onTap: () async {
+                        var offerings = await state.fetchOffers();
+                        if (offerings.isNotEmpty) {
+                          final packages = offerings
+                              .map((offer) => offer.availablePackages)
+                              .expand((element) => element)
+                              .toList();
+                          showModalBottomSheet(
+                            context: context,
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30))),
+                            builder: (BuildContext context) {
+                              return RechargeBottomSheetAndroid(
+                                state: state,
+                                balance: state.balance,
+                                packages: packages,
+                              );
+                            },
+                          ).then((value) async {
+                            state.balance = await state.getCreditbalance();
+                            setState(() {});
+                          });
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.money_euro_circle,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              ' ${state.balance}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : AppBar(
+                key: const Key('cancleAppBar'),
+                automaticallyImplyLeading: false,
+                elevation: 0.0,
+                backgroundColor: AppColors.HeaderColor,
+                leading: IconButton(
+                    splashRadius: 20,
+                    onPressed: () {
+                      state.filePicked = false;
+                      print("isFilePicked clicked ${state.isFilePicked}");
+                    },
+                    icon: const Icon(Icons.close)),
+              ),
+      ),
+    );
+  }

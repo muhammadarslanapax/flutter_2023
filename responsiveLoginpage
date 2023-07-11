@@ -1,0 +1,841 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:secure_teen_flutter/app/modules/login/views/pages/login_desktop_view.dart';
+import 'package:secure_teen_flutter/app/modules/login/views/pages/login_mobile_view.dart';
+import 'package:secure_teen_flutter/app/modules/login/views/pages/login_tablet_view.dart';
+
+import '../../../utils/responsive_builder.dart';
+import '../controllers/login_controller.dart';
+
+class LoginView extends GetView<LoginController> {
+  const LoginView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: ResponsiveBuilder.isMobile(context)
+          ? AppBar(
+              leading: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: Icon(Icons.arrow_back_ios_new)),
+              title: const Text('view_child_screen_login').tr(),
+              centerTitle: true,
+            )
+          : null,
+      body: ResponsiveBuilder(
+        mobileBuilder: (context, constraint) {
+          return LoginMobileView();
+        },
+        tabletBuilder: (context, constraint) {
+          return LoginTabletView();
+        },
+        desktopBuilder: (context, constraint) {
+          return LoginDesktopView();
+        },
+      ),
+    );
+  }
+}
+
+-----------------
+
+
+
+import 'package:flutter/material.dart';
+
+class ResponsiveBuilder extends StatelessWidget {
+  const ResponsiveBuilder({
+    required this.mobileBuilder,
+    required this.tabletBuilder,
+    required this.desktopBuilder,
+    Key? key,
+  }) : super(key: key);
+
+  final Widget Function(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) mobileBuilder;
+
+  final Widget Function(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) tabletBuilder;
+
+  final Widget Function(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) desktopBuilder;
+
+  static bool isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 600;
+
+  static bool isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width < 1100 &&
+      MediaQuery.of(context).size.width >= 600;
+
+  static bool isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1100;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 1100) {
+          return desktopBuilder(context, constraints);
+        } else if (constraints.maxWidth >= 600) {
+          return tabletBuilder(context, constraints);
+        } else {
+          return mobileBuilder(context, constraints);
+        }
+      },
+    );
+  }
+}
+-------------
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/login_controller.dart';
+import '../components/left_hand_side_view.dart';
+import '../components/login_form_view.dart';
+
+class LoginDesktopView extends StatelessWidget {
+  LoginDesktopView({Key? key}) : super(key: key);
+  LoginController controller = Get.find<LoginController>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: Center(
+      child: Card(
+        child: Container(
+          width: 1366,
+          height: 768,
+          child: Row(
+            children: [
+              Expanded(flex: 50, child: LeftHandSideView()),
+              Expanded(
+                  flex: 50,
+                  child: LoginFormView(
+                    controller: controller,
+                  )),
+            ],
+          ),
+        ),
+      ),
+    ));
+  }
+}
+---------
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../controllers/login_controller.dart';
+import '../components/login_form_view.dart';
+
+class LoginMobileView extends StatelessWidget {
+  LoginMobileView({Key? key}) : super(key: key);
+  LoginController controller = Get.find<LoginController>();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: LoginFormView(
+        controller: controller,
+      ),
+    );
+  }
+}
+----------
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../controllers/login_controller.dart';
+import '../components/login_form_view.dart';
+
+class LoginTabletView extends StatelessWidget {
+  LoginTabletView({Key? key}) : super(key: key);
+  LoginController controller = Get.find<LoginController>();
+
+/*  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: Row(
+      children: [
+        Expanded(flex: 50, child: LeftHandSideView()),
+        Expanded(
+            flex: 50,
+            child: LoginFormView(
+              controller: controller,
+            )),
+      ],
+    ));
+  }*/
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: LoginFormView(
+        controller: controller,
+      ),
+    );
+  }
+}
+--------
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+
+import '../../../../utils/colors.dart';
+import '../../../../utils/responsive_builder.dart';
+
+class LeftHandSideView extends StatelessWidget {
+  LeftHandSideView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return leftHandSide(context);
+  }
+
+  Widget leftHandSide(context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          vertical: 20,
+          horizontal: ResponsiveBuilder.isTablet(context) ? 20 : 50),
+      decoration: const BoxDecoration(gradient: AppColors.blueGradient),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+        ],
+      ),
+    );
+  }
+}
+----------
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:secure_teen_flutter/app/utils/app_extensions.dart';
+
+import '../../../../routes/app_pages.dart';
+import '../../../../shared/app_form_fields.dart';
+import '../../../../utils/colors.dart';
+import '../../../../utils/responsive_builder.dart';
+import '../../controllers/login_controller.dart';
+
+class LoginFormView extends StatelessWidget {
+  LoginController controller;
+
+  LoginFormView({Key? key, required this.controller}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return rightHandSide(context);
+  }
+
+  Widget rightHandSide(context) {
+    return Obx(() {
+      return Container(
+        color: Colors.white,
+        padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveBuilder.isDesktop(context) ? 60 : 30),
+        child: SingleChildScrollView(
+          child: Container(
+            width: Get.width,
+            margin: EdgeInsets.only(top: 50),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  "assets/images/logo.png",
+                  width: Get.width * .60,
+                ),
+                20.height,
+                Form(
+                  key: controller.formKey,
+                  child: Column(
+                    children: [
+                      AppFormField(
+                        controller: controller.emailController,
+                        labelText: 'sign_in_email_textfield_label',
+                        labelStyle: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w400),
+                        prefixIcon: Icon(PhosphorIcons.bold.envelopeSimple,
+                            color: AppColors.blue, size: 22),
+                        hintText: tr('email_address_field_empty_message_body'),
+                        keyboardType: TextInputType.emailAddress,
+                        onChanged: (v) {
+                          //loginProvider.email = v;
+                        },
+                        validator: (v) {
+                          if (v!.isEmpty) {
+                            return tr('email_address_field_empty_message_body');
+                          }
+                          if (!GetUtils.isEmail(v)) {
+                            return tr(
+                                'signup_activity_emailaddress_invalid_error_message');
+                          }
+                          return null;
+                        },
+                        required: true,
+                        digitsOnly: false,
+                        enabled: true,
+                      ),
+                      SizedBox(
+                        height: 22,
+                      ),
+                      AppFormField(
+                        controller: controller.passwordController,
+                        labelText: 'sign_in_password_textfield_label',
+                        labelStyle: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w400),
+                        hintText: tr('mainactivity_passwordtextfiled_label'),
+                        suffixIcon: IconButton(
+                            onPressed: () {
+                              controller.togglePassword();
+                            },
+                            icon: controller.isHidden.value
+                                ? Icon(
+                                    PhosphorIcons.fill.eye,
+                                    color: Colors.grey,
+                                  )
+                                : Icon(
+                                    PhosphorIcons.fill.eyeClosed,
+                                    color: Colors.grey,
+                                  )),
+                        prefixIcon: Icon(PhosphorIcons.bold.key,
+                            color: AppColors.blue, size: 22),
+                        obsecureText: controller.isHidden.value,
+                        keyboardType: TextInputType.text,
+                        onChanged: (v) {
+                          //loginProvider.password = v;
+                        },
+                        validator: (v) {
+                          if (v!.isEmpty) {
+                            return tr(
+                                'signup_activity_password_field_empty_message_body');
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(
+                        height: 12,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Get.toNamed(Routes.FORGOT_PASSWORD);
+                            },
+                            child: Text(
+                              'sign_in_forgot_password_label',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 14,
+                                height: 1,
+                                color: AppColors.blue,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ).tr(),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 32,
+                      ),
+                      Container(
+                        width: Get.width,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            controller.login();
+                          },
+                          child: Text("Login",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(color: Colors.white)),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Divider(
+                        endIndent: 50,
+                        indent: 50,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class RedSelectedBorderSide extends MaterialStateBorderSide {
+  @override
+  BorderSide resolve(Set<MaterialState> states) {
+    if (states.contains(MaterialState.selected)) {
+      return BorderSide(
+        width: 2,
+        color: Colors.red,
+      ); //
+    }
+    return BorderSide(); // Defer to default value on the theme or widget.
+  }
+}
+------------
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:secure_teen_flutter/app/data/local/shared_pref.dart';
+import 'package:secure_teen_flutter/app/data/network/api_provider.dart';
+import 'package:secure_teen_flutter/app/models/signin_response.dart';
+import 'package:secure_teen_flutter/app/routes/app_pages.dart';
+import 'package:secure_teen_flutter/app/services/app_service.dart';
+
+import '../../../models/signin_model.dart';
+import '../../../shared/custom_dialogue.dart';
+import '../../../utils/app_consts.dart';
+
+class LoginController extends GetxController {
+  GlobalKey<FormState> formKey = GlobalKey();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  final isHidden = true.obs;
+
+  ApiProvider apiProvider;
+
+  LoginController(this.apiProvider);
+
+  @override
+  void onInit() {
+    super.onInit();
+  }
+
+  void togglePassword() {
+    isHidden.value = !isHidden.value;
+  }
+
+  login() async {
+    AppService appService = Get.find<AppService>();
+    FocusManager.instance.primaryFocus?.unfocus();
+    print(
+        "deviceKey : ${appService.deviceKey} | regionCode : ${appService.regionCode} | languageCode : ${appService.languageCode} | timeZone : ${appService.timeZone} | decimalSeperator : ${appService.decimalSeperator} | getPmSymbol : ${appService.getPmSymbol} | getSecondsFromGMT : ${appService.getSecondsFromGMT}");
+    if (formKey.currentState!.validate()) {
+      showLoadingDialog(Get.context!);
+      SignInModel signInModel = SignInModel(
+          email: emailController.text,
+          password: passwordController.text,
+          deviceKey: appService.deviceKey,
+          country: "N/A",
+          countryCode: appService.regionCode,
+          language: "N/A",
+          languageCode: appService.languageCode,
+          timeZone: appService.timeZone,
+          timeZoneOffsetSeconds: "${appService.getSecondsFromGMT}");
+      apiProvider.login({"formData": json.encode(signInModel.toJson())}).then(
+          (value) async {
+        if (value.statusCode == 200) {
+          SignInResponse response = SignInResponse.fromJson(value.data);
+          print(response.toJson());
+          if (int.parse(response.code ?? "200") == STATUS_SUCCESS) {
+            Get.find<SharedPreferencesManager>()
+                .putBool(SharedPreferencesManager.keyIslogIn, true);
+            Get.find<SharedPreferencesManager>().putString(
+                SharedPreferencesManager.keyUserEmail, emailController.text);
+            Get.find<SharedPreferencesManager>().putString(
+                SharedPreferencesManager.keyUserUniqueID,
+                appService.deviceKey!);
+            //Get.offAndToNamed(Routes.HOME);
+            var isar = Get.find<AppService>().isar;
+            await isar.writeTxn(() async {
+              await isar.signInResponses.put(response);
+            });
+            Get.back();
+            Get.offAllNamed(Routes.HOME);
+          } else {
+            //todo show error dialog with code
+            Get.back();
+          }
+        } else {
+          //todo show error dialog
+          Get.back();
+        }
+      }).onError((error, stackTrace) {
+        print("$error | $stackTrace");
+        Get.back();
+      });
+    }
+    // Get.toNamed(Routes.HOME);
+  }
+}
+------------
+
+
+
+
+import 'dart:io';
+
+import 'package:secure_teen_flutter/app/utils/app_consts.dart';
+
+class SignInModel {
+  String? email;
+  String? password;
+  String resellerId;
+  String? deviceKey;
+  String? platform;
+  String productVersion;
+  String? country;
+  String? countryCode;
+  String? language;
+  String? languageCode;
+  String? timeZone;
+  String? timeZoneOffsetSeconds;
+  String appType;
+
+  SignInModel(
+      {required this.email,
+      required this.password,
+      this.resellerId = RESELLER_ID,
+      required this.deviceKey,
+      this.platform,
+      this.productVersion = APP_VERSION,
+      required this.country,
+      required this.countryCode,
+      required this.language,
+      required this.languageCode,
+      required this.timeZone,
+      required this.timeZoneOffsetSeconds,
+      this.appType = APP_TYPE}) {
+    platform = Platform.isAndroid ? "android" : "iphone";
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['email'] = this.email;
+    data['password'] = this.password;
+    data['resellerId'] = this.resellerId;
+    data['deviceKey'] = this.deviceKey;
+    data['platform'] = this.platform;
+    data['productVersion'] = this.productVersion;
+    data['country'] = this.country;
+    data['countryCode'] = this.countryCode;
+    data['language'] = this.language;
+    data['languageCode'] = this.languageCode;
+    data['timeZone'] = this.timeZone;
+    data['timeZoneOffsetSeconds'] = this.timeZoneOffsetSeconds;
+    data['appType'] = this.appType;
+    return data;
+  }
+}
+-----------
+
+
+
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
+
+import 'api_interceptor.dart';
+
+/// Created by Babar on 2/25/2022.
+abstract class ApiProvider {
+  Future<Response> register(
+    Map<String, dynamic> data,
+  );
+
+  Future<Response> login(
+    Map<String, dynamic> data,
+  );
+
+  Future<Response> resetPassword(
+    Map<String, dynamic> data,
+  );
+
+  Future<Response> changePassword(
+    Map<String, dynamic> data,
+  );
+
+  Future<Response> getNotifications(
+    Map<String, dynamic> data,
+  );
+
+  Future<Response> addNewChild(
+    Map<String, dynamic> data,
+  );
+
+  Future<Response> getDevicesInfo(
+    Map<String, dynamic> data,
+  );
+  Future<Response> fetchWebData(
+    Map<String, dynamic> data,
+  );
+}
+
+class ApiProviderImpl implements ApiProvider {
+  final Dio _dio = Dio(options);
+
+  ApiProviderImpl(ApiInterceptor apiInterceptor) {
+    _dio.interceptors.add(apiInterceptor);
+  }
+
+  static BaseOptions options = BaseOptions(
+    baseUrl: "https://dashboard.secureteen.com",
+    // baseUrl: "http://192.168.100.16:8000/",
+    contentType: Headers.formUrlEncodedContentType, //"application/json",
+    followRedirects: false,
+    responseType: ResponseType.plain,
+    connectTimeout: Duration(seconds: 20),
+    receiveTimeout: Duration(seconds: 20),
+    validateStatus: (status) {
+      return status! < 500;
+    },
+  );
+
+  @override
+  Future<Response> login(Map<String, dynamic> data) {
+    return _dio.post(
+      "/secure/user/signin",
+      data: data,
+    );
+  }
+
+  @override
+  Future<Response> register(Map<String, dynamic> data) {
+    return _dio.post(
+      "/secure/user/signup",
+      data: data,
+    );
+  }
+
+  @override
+  Future<Response> changePassword(Map<String, dynamic> data) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response> resetPassword(Map<String, dynamic> data) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Response> getNotifications(Map<String, dynamic> data) {
+    return _dio.post("/secure/device/notifications", queryParameters: data);
+  }
+
+  @override
+  Future<Response> addNewChild(Map<String, dynamic> data) {
+    return _dio.post(
+      "/secure/add/device/new?userName=${data["user"]['email']}",
+      data: {"formData": json.encode(data)},
+    );
+  }
+
+  @override
+  Future<Response> getDevicesInfo(Map<String, dynamic> data) {
+    return _dio.get('/info/get/new', queryParameters: data);
+  }
+
+  @override
+  Future<Response> fetchWebData(Map<String, dynamic> data) {
+    return _dio.get('/info/get/new', queryParameters: data);
+  }
+}
+--------
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+/*
+ Created by Babar on 2/25/2022.
+ */
+class SharedPreferencesManager {
+  SharedPreferences? sharedPreferences;
+
+  static const String keyAccessToken = 'accessToken';
+  static const String keyRefreshToken = 'refreshToken';
+  static const String keyUserType = 'user_type';
+  static const String keyUserDataSet = 'user_dataset';
+  static const String keyRole = 'user_role';
+  static const String keyFcmToken = 'fcm_token';
+  static const String keyIslogIn = "isLogin";
+  static const String keyUserEmail = "user_email";
+  static const String keyUserUniqueID = "user_unique_id";
+
+  SharedPreferencesManager({required this.sharedPreferences});
+
+  Future<bool>? putBool(String key, bool value) =>
+      sharedPreferences?.setBool(key, value);
+
+  bool? getBool(String key) => sharedPreferences?.getBool(key);
+
+  Future<bool>? putDouble(String key, double value) =>
+      sharedPreferences?.setDouble(key, value);
+
+  double? getDouble(String key) => sharedPreferences?.getDouble(key);
+
+  Future<bool>? putInt(String key, int value) =>
+      sharedPreferences?.setInt(key, value);
+
+  int? getInt(String key) => sharedPreferences?.getInt(key);
+
+  Future<bool>? putString(String key, String value) =>
+      sharedPreferences?.setString(key, value);
+
+  String? getString(String key) => sharedPreferences?.getString(key);
+
+  Future<bool>? putStringList(String key, List<String> value) =>
+      sharedPreferences?.setStringList(key, value);
+
+  List<String>? getStringList(String key) =>
+      sharedPreferences?.getStringList(key);
+
+  bool? isKeyExists(String key) => sharedPreferences?.containsKey(key);
+
+  Future<bool>? clearKey(String key) => sharedPreferences?.remove(key);
+
+  Future<bool>? clearAll() => sharedPreferences?.clear();
+}
+----------
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../utils/colors.dart';
+
+class AppFormField extends StatelessWidget {
+  GlobalKey<FormFieldState>? formFieldKey;
+  TextEditingController? controller;
+  String? labelText;
+  String? hintText;
+  bool enabled = true;
+  Widget? prefixIcon;
+  Widget? suffixIcon;
+  Color? fillColor;
+  FocusNode? focusNode;
+  Widget? labelWidget;
+  ValueChanged<String>? onChanged;
+  bool obsecureText;
+  bool required;
+  TextInputType? keyboardType;
+  int? maxLength, maxlines, minlines;
+  bool digitsOnly = false;
+  bool isLabelEmpty = false;
+  EdgeInsets? padding;
+  FormFieldValidator<String>? validator;
+  List<TextInputFormatter>? inputFormatters;
+  TextStyle? labelStyle;
+
+  AppFormField(
+      {Key? key,
+      this.controller,
+      this.labelText,
+      this.isLabelEmpty = false,
+      this.hintText,
+      this.enabled = true,
+      this.prefixIcon,
+      this.suffixIcon,
+      this.formFieldKey,
+      this.fillColor,
+      this.focusNode,
+      this.labelWidget,
+      this.onChanged,
+      this.obsecureText = false,
+      this.required = true,
+      this.keyboardType,
+      this.minlines = 1,
+      this.maxlines = 1,
+      this.maxLength,
+      this.digitsOnly = false,
+      this.padding,
+      this.validator,
+      this.inputFormatters,
+      this.labelStyle})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        isLabelEmpty
+            ? SizedBox(
+                height: 10,
+              )
+            : Padding(
+                padding: const EdgeInsets.only(left: 10.0, bottom: 5),
+                child: Text(
+                  labelText ?? '',
+                  style: labelStyle,
+                ).tr(),
+              ),
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  width: 1,
+                  color: AppColors.blue,
+                )),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  width: 1,
+                  color: AppColors.colorGrey,
+                )),
+            errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  width: 1,
+                  color: Colors.red,
+                )),
+            hintText: hintText.toString(),
+            enabled: enabled,
+            contentPadding:
+                padding ?? EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            prefixIcon: prefixIcon,
+            suffixIcon: suffixIcon,
+          ),
+          onEditingComplete: () {
+            FocusScope.of(context).unfocus();
+          },
+          validator: validator ??
+              (v) {
+                if (v!.isEmpty) {
+                  return "Field is required";
+                }
+                return null;
+              },
+          onChanged: onChanged,
+          obscureText: obsecureText,
+          keyboardType: digitsOnly ? TextInputType.number : keyboardType,
+          inputFormatters: inputFormatters,
+          focusNode: focusNode,
+          maxLines: maxlines,
+          minLines: minlines,
+          maxLength: maxLength,
+          // textAlign: TextAlign.start,
+          // textAlignVertical: TextAlignVertical.center,
+        ),
+      ],
+    );
+  }
+}
+---------------

@@ -1,0 +1,39 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:secure_teen_flutter/app/modules/login/views/pages/login_desktop_view.dart';
+import 'package:secure_teen_flutter/app/modules/login/views/pages/login_mobile_view.dart';
+import 'package:secure_teen_flutter/app/modules/login/views/pages/login_tablet_view.dart';
+
+import '../../../utils/responsive_builder.dart';
+import '../controllers/login_controller.dart';
+
+class LoginView extends GetView<LoginController> {
+  const LoginView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: ResponsiveBuilder.isMobile(context)
+          ? AppBar(
+              leading: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: Icon(Icons.arrow_back_ios_new)),
+              title: const Text('view_child_screen_login').tr(),
+              centerTitle: true,
+            )
+          : null,
+      body: ResponsiveBuilder(
+        mobileBuilder: (context, constraint) {
+          return LoginMobileView();
+        },
+        tabletBuilder: (context, constraint) {
+          return LoginTabletView();
+        },
+        desktopBuilder: (context, constraint) {
+          return LoginDesktopView();
+        },
+      ),
+    );
+  }
+}

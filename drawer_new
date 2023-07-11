@@ -1,0 +1,87 @@
+  Widget drawerView() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: AppColors.HeaderColor,
+            ),
+            child: Image.asset(
+              'assets/splah.png',
+              fit: BoxFit.contain,
+              height: 40,
+              width: 40,
+            ),
+          ),
+          ListTile(
+            title: const Text('Privacy Policy'),
+            onTap: () async {
+              if (!await launchUrl(
+                  Uri.parse("https://ssebowa.ai/privacy.html"))) {
+                throw Exception('Could not launch the url');
+              }
+            },
+          ),
+          ListTile(
+            title: const Text('Terms of Use'),
+            onTap: () async {
+              if (!await launchUrl(Uri.parse("https://ssebowa.ai/term.html"))) {
+                throw Exception('Could not launch the url');
+              }
+            },
+          ),
+          SizedBox(
+            height: 30,
+          ),
+          if (kIsWeb)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      await launchUrl(Uri.parse(
+                          "https://apps.apple.com/be/app/ssebowa-chatbot/id6448291335"));
+                    },
+                    child: Image.asset(
+                      "assets/app_store.png",
+                      width: 200,
+                      height: 60,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  if (kIsWeb)
+                    InkWell(
+                        onTap: () async {
+                          await launchUrl(Uri.parse(
+                              "https://play.google.com/store/apps/details?id=org.ssebowa.chatbot"));
+                        },
+                        child: Image.asset(
+                          "assets/googleplay.png",
+                          width: 200,
+                          height: 60,
+                        )),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  if (kIsWeb)
+                    InkWell(
+                        onTap: () async {
+                          await launchUrl(
+                              Uri.parse("https://wa.me/12524944296"));
+                        },
+                        child: Image.asset(
+                          "assets/whatsapp.png",
+                          width: 200,
+                          height: 60,
+                        )),
+                ],
+              ),
+            )
+        ],
+      ),
+    );
+  }

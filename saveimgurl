@@ -1,0 +1,33 @@
+    Future<void> _saveImage(BuildContext context) async {
+      String? message;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+      try {
+        // Download image
+        final http.Response response = await http.get(Uri.parse(imageUrl));
+
+        // Get temporary directory
+        final dir = await getTemporaryDirectory();
+
+        // Create an image name
+        var filename = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png';
+
+        // Save to filesystem
+        final file = File(filename);
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Ask the user to save it
+        final params = SaveFileDialogParams(sourceFilePath: file.path);
+        final finalPath = await FlutterFileDialog.saveFile(params: params);
+
+        if (finalPath != null) {
+          message = 'Image saved to mobile';
+        }
+      } catch (e) {
+        message = 'An error occurred while saving the image';
+      }
+
+      if (message != null) {
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text(message)));
+      }
+    }

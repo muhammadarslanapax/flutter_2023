@@ -1,0 +1,22 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:railway_booking/app/views/saplash.dart';
+import 'package:railway_booking/responsive/resposive.dart';
+import 'package:railway_booking/web/views/saplashweb.dart';
+
+class LayoutScreen extends StatelessWidget {
+  const LayoutScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) {
+      return const ResponsiveWidget(
+        largeScreen: WebSaplash(),
+        mediumScreen: WebSaplash(),
+        smallScreen: WebSaplash(),
+      );
+    } else {
+      return const SaplashApp();
+    }
+  }
+}

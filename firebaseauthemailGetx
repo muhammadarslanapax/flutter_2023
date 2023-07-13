@@ -1,0 +1,431 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
+import 'package:railway_booking/utils/staticData.dart';
+import 'package:railway_booking/web/model/loginmodel.dart';
+import 'package:railway_booking/web/views/webhome.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class WebLoginController extends GetxController {
+  static WebLoginController get to => Get.find();
+  int index = 0;
+
+  TextEditingController emailcontroller = TextEditingController();
+  TextEditingController passwordcontroller = TextEditingController();
+
+  TextEditingController sfullNamecontroller = TextEditingController();
+  TextEditingController sphonenumbercontroller = TextEditingController();
+  TextEditingController semailcontroller = TextEditingController();
+  TextEditingController spasswordcontroller = TextEditingController();
+
+  TextEditingController femailcontroller = TextEditingController();
+
+  String? number;
+  String? errorMessage;
+  bool password = true;
+
+  void clearControllers() {
+    sfullNamecontroller.clear();
+    sphonenumbercontroller.clear();
+    semailcontroller.clear();
+    spasswordcontroller.clear();
+    update();
+  }
+
+  // firebase login auth
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  bool isloading = false;
+  Future login(BuildContext context) async {
+    isloading = true;
+    update();
+
+    try {
+      UserCredential userCredential = await auth.signInWithEmailAndPassword(
+          email: emailcontroller.text, password: passwordcontroller.text);
+      var user = auth.currentUser;
+      StatiVariables.adminUid = user!.uid;
+      await firebaseFirestore
+          .collection("Admin")
+          .doc(StatiVariables.adminUid)
+          .get()
+          .then((value) {
+        if (value.data() == null) {
+          isloading = false;
+          update();
+
+          Fluttertoast.showToast(
+              msg: "Dont't have an account Signup ",
+              textColor: Colors.white,
+              gravity: ToastGravity.CENTER,
+              fontSize: 17,
+              timeInSecForIosWeb: 1,
+              toastLength: Toast.LENGTH_SHORT);
+        } else {
+          var adminLoginModel = AdminLoginModel.fromMap(value.data()!);
+          String status = adminLoginModel.status!;
+
+          if (status == "admin") {
+            saveLoginDataToSF(userCredential.user!.uid);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const WebHome()));
+          }
+          isloading = false;
+          update();
+
+          Fluttertoast.showToast(
+              msg: "User Login Successfully",
+              textColor: Colors.white,
+              gravity: ToastGravity.CENTER,
+              fontSize: 17,
+              timeInSecForIosWeb: 1,
+              toastLength: Toast.LENGTH_SHORT);
+        }
+      });
+    } on FirebaseAuthException catch (error) {
+      switch (error.code) {
+        case "invalid-email":
+          errorMessage = "Invalid Email!";
+          break;
+        case "wrong-password":
+          errorMessage = "Wrong Password";
+          break;
+        case "user-not-found":
+          errorMessage = "User with this email doesn't exist.";
+          break;
+        case "user-disabled":
+          errorMessage = "User with this email has been disabled.";
+          break;
+        case "too-many-requests":
+          errorMessage = "Too many requests";
+          break;
+        case "":
+          errorMessage = "Signing in with Email and Password is not enabled.";
+          break;
+        default:
+          errorMessage = "An undefined Error happened.";
+      }
+      isloading = false;
+      update();
+
+      Fluttertoast.showToast(
+        msg: errorMessage!,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+    isloading = false;
+    update();
+  }
+
+  // signup
+
+  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+  Future<void> register(BuildContext context) async {
+    isloading = true;
+    update();
+    try {
+      final User? user = (await auth.createUserWithEmailAndPassword(
+        email: semailcontroller.text,
+        password: spasswordcontroller.text,
+      ))
+          .user;
+      if (user != null) {
+        Fluttertoast.showToast(
+          msg: 'Succes',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        index = 0;
+        postDataToFirebase();
+        isloading = false;
+
+        update();
+      }
+    } on FirebaseAuthException catch (error) {
+      switch (error.code) {
+        case "invalid-email":
+          errorMessage = "Invalid Email!";
+          break;
+        case "wrong-password":
+          errorMessage = "Wrong Password";
+          break;
+        case "user-not-found":
+          errorMessage = "User with this email doesn't exist.";
+          break;
+        case "user-disabled":
+          errorMessage = "User with this email has been disabled.";
+          break;
+        case "too-many-requests":
+          errorMessage = "Too many requests";
+          break;
+        case "":
+          errorMessage = "Signing in with Email and Password is not enabled.";
+          break;
+        default:
+          errorMessage = "An undefined Error happened.";
+      }
+      isloading = false;
+      update();
+      Fluttertoast.showToast(
+        msg: errorMessage!,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
+  saveLoginDataToSF(String id) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString("Adminuid", id);
+  }
+
+  clearDataToSP() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.getKeys();
+    sharedPreferences.clear();
+  }
+
+  postDataToFirebase() async {
+    User user = auth.currentUser!;
+    String id = user.uid;
+    AdminLoginModel model = AdminLoginModel(
+        email: semailcontroller.text,
+        name: sfullNamecontroller.text,
+        number: number,
+        password: spasswordcontroller.text,
+        id: id,
+        status: "admin");
+
+    await firebaseFirestore.collection("Admin").doc(id).set(model.toMap());
+  }
+
+  Future forgetPass(BuildContext context) async {
+    isloading = true;
+    update();
+    try {
+      await auth.sendPasswordResetEmail(email: femailcontroller.text);
+      isloading = false;
+      update();
+      Navigator.pop(context);
+      Fluttertoast.showToast(
+        msg: 'sent !',
+        timeInSecForIosWeb: 1,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code.toString() == 'invalid-email') {
+        isloading = false;
+        update();
+        // setState(() {message 'Invalid email address.';});
+        Fluttertoast.showToast(
+          msg: 'invalid-email',
+          timeInSecForIosWeb: 1,
+        );
+      }
+      if (e.code.toString() == 'missing-email') {
+        isloading = false;
+        update();
+        Fluttertoast.showToast(
+          msg: 'missing-email',
+          timeInSecForIosWeb: 1,
+        );
+      }
+      if (e.code.toString() == 'user-not-found') {
+        isloading = false;
+        update();
+        Fluttertoast.showToast(
+          msg: 'user-not-found',
+          timeInSecForIosWeb: 1,
+        );
+      }
+    }
+    femailcontroller.clear();
+    update();
+  }
+}
+
+
+
+
+
+
+
+==========
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:railway_booking/web/views/acceptbooking.dart';
+import 'package:railway_booking/web/views/addtrain.dart';
+import 'package:railway_booking/web/views/authScreens/loginScreen.dart';
+import 'package:railway_booking/web/views/dashboard.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class WebHomeController extends GetxController {
+  static WebHomeController get to => Get.find();
+  FirebaseAuth auth = FirebaseAuth.instance;
+  logout(BuildContext context) async {
+    // final GoogleSignIn googleSignIn = GoogleSignIn();
+    // await googleSignIn.signOut();
+
+    await auth.signOut();
+    clearSF();
+    update();
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const WebLoginScreen()));
+  }
+
+  clearSF() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.getKeys();
+    sharedPreferences.clear();
+  }
+
+  Widget selectScreen = const Dashboard();
+  chooseScreen(item) {
+    switch (item) {
+      case Dashboard.id:
+        selectScreen = const Dashboard();
+
+        update();
+        break;
+      case AcceptBooking.id:
+        selectScreen = const AcceptBooking();
+        update();
+        break;
+      case AddTrain.id:
+        selectScreen = const AddTrain();
+        update();
+        break;
+      default:
+    }
+  }
+}
+
+
+
+=========================
+
+
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+
+class AdminLoginModel {
+  String? name;
+  String? email;
+  String? password;
+  String? number;
+  String? id;
+  String? status;
+  AdminLoginModel({
+    this.name,
+    this.email,
+    this.password,
+    this.number,
+    this.id,
+    this.status,
+  });
+ 
+
+  AdminLoginModel copyWith({
+    String? name,
+    String? email,
+    String? password,
+    String? number,
+    String? id,
+    String? status,
+  }) {
+    return AdminLoginModel(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      number: number ?? this.number,
+      id: id ?? this.id,
+      status: status ?? this.status,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'name': name,
+      'email': email,
+      'password': password,
+      'number': number,
+      'id': id,
+      'status': status,
+    };
+  }
+
+  factory AdminLoginModel.fromMap(Map<String, dynamic> map) {
+    return AdminLoginModel(
+      name: map['name'] != null ? map['name'] as String : null,
+      email: map['email'] != null ? map['email'] as String : null,
+      password: map['password'] != null ? map['password'] as String : null,
+      number: map['number'] != null ? map['number'] as String : null,
+      id: map['id'] != null ? map['id'] as String : null,
+      status: map['status'] != null ? map['status'] as String : null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory AdminLoginModel.fromJson(String source) => AdminLoginModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  String toString() {
+    return 'AdminLoginModel(name: $name, email: $email, password: $password, number: $number, id: $id, status: $status)';
+  }
+
+  @override
+  bool operator ==(covariant AdminLoginModel other) {
+    if (identical(this, other)) return true;
+  
+    return 
+      other.name == name &&
+      other.email == email &&
+      other.password == password &&
+      other.number == number &&
+      other.id == id &&
+      other.status == status;
+  }
+
+  @override
+  int get hashCode {
+    return name.hashCode ^
+      email.hashCode ^
+      password.hashCode ^
+      number.hashCode ^
+      id.hashCode ^
+      status.hashCode;
+  }
+}
+
+
+
+
+
+
+
+
+=============
+
+
+
+
+
+
+
+
+
+============

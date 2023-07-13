@@ -1,0 +1,504 @@
+import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class AuthController extends GetxController {
+  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  Rx<User?> user = Rx<User?>(null);
+
+  @override
+  void onInit() {
+    super.onInit();
+    user.bindStream(_firebaseAuth.authStateChanges());
+  }
+
+  Future<void> signUp(String email, String password) async {
+    try {
+      await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Successful signup
+    } catch (e) {
+      // Handle signup error
+    }
+  }
+
+  Future<void> signIn(String email, String password) async {
+    try {
+      await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Successful sign-in
+    } catch (e) {
+      // Handle sign-in error
+    }
+  }
+
+  Future<void> signOut() async {
+    await _firebaseAuth.signOut();
+  }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+      // Password reset email sent
+    } catch (e) {
+      // Handle password reset error
+    }
+  }
+}
+
+
+
+------
+dependencies:
+  firebase_core: ^1.10.0
+  firebase_auth: ^3.1.1
+  get: ^4.1.4
+------
+
+
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  final AuthController _authController = AuthController();
+
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: 'Your App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: Scaffold(
+        body: GetBuilder<AuthController>(
+          init: _authController,
+          builder: (controller) {
+            if (controller.user.value == null) {
+              // User is not authenticated, show login/signup screen
+              return LoginScreen();
+            } else {
+              // User is authenticated, show home screen
+              return HomeScreen();
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+=======================================
+
+
+
+import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class AuthController extends GetxController {
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // User authentication status
+  Rx<User?> user = Rx<User?>(null);
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Check if the user is already logged in
+    user.value = _auth.currentUser;
+  }
+
+  // Sign up with mobile number and verification code
+  Future<void> signUpWithPhoneNumber(
+      String phoneNumber, Function(PhoneAuthCredential) verificationCompleted,
+      {Function(FirebaseAuthException)? verificationFailed,
+      Function(String verificationId, int? resendToken)? codeSent,
+      Function(String verificationId, int? resendToken)? codeAutoRetrievalTimeout,
+      int codeAutoRetrievalTimeoutDuration = 30}) async {
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: verificationCompleted,
+        verificationFailed: verificationFailed ??
+            (FirebaseAuthException e) {
+              Get.snackbar('Verification Failed', e.message!);
+            },
+        codeSent: codeSent ??
+            (String verificationId, int? resendToken) async {
+              // Navigate to OTP verification screen and pass verificationId and resendToken
+              // for later use in the signInWithPhoneNumber method
+              Get.toNamed('/otp', arguments: {
+                'verificationId': verificationId,
+                'resendToken': resendToken,
+              });
+            },
+        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout ??
+            (String verificationId) {
+              Get.snackbar('Verification Timeout',
+                  'The verification code has expired. Please try again.');
+            },
+        codeAutoRetrievalTimeoutDuration: Duration(
+                seconds: codeAutoRetrievalTimeoutDuration)
+            .inSeconds,
+      );
+    } catch (e) {
+      Get.snackbar('Sign Up Error', e.toString());
+    }
+  }
+
+  // Sign in with mobile number and verification code
+  Future<void> signInWithPhoneNumber(
+      String verificationId, String verificationCode) async {
+    try {
+      AuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: verificationCode,
+      );
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      user.value = userCredential.user;
+    } catch (e) {
+      Get.snackbar('Sign In Error', e.toString());
+    }
+  }
+
+  // Sign out
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      user.value = null;
+    } catch (e) {
+      Get.snackbar('Sign Out Error', e.toString());
+    }
+  }
+}
+
+
+
+==================
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+
+class AuthBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AuthController>(() => AuthController());
+  }
+}
+
+
+=========
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+
+class SignUpView extends GetWidget<AuthController> {
+  final TextEditingController _phoneNumberController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Sign Up'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _phoneNumberController,
+              decoration: InputDecoration(labelText: 'Phone Number'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                String phoneNumber = _phoneNumberController.text.trim();
+                controller.signUpWithPhoneNumber(phoneNumber,
+                    (PhoneAuthCredential credential) {
+                  // Auto-verification completed, proceed with sign in
+                  controller.signInWithPhoneNumber(
+                    credential.verificationId,
+                    credential.smsCode!,
+                  );
+                });
+              },
+              child: Text('Sign Up'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+========
+
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+
+class OtpView extends GetWidget<AuthController> {
+  final TextEditingController _otpController = TextEditingController();
+  late final String verificationId;
+  late final int? resendToken;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final arguments = Get.arguments as Map<String, dynamic>;
+    verificationId = arguments['verificationId'];
+    resendToken = arguments['resendToken'];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('OTP Verification'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _otpController,
+              decoration: InputDecoration(labelText: 'OTP'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                String otp = _otpController.text.trim();
+                controller.signInWithPhoneNumber(verificationId, otp);
+              },
+              child: Text('Verify OTP'),
+            ),
+            SizedBox(height: 16.0),
+            TextButton(
+              onPressed: () {
+                controller.signUpWithPhoneNumber(
+                  '',
+                  (PhoneAuthCredential credential) {
+                    // Resend OTP code
+                    _otpController.clear();
+                    controller.signInWithPhoneNumber(
+                      credential.verificationId,
+                      credential.smsCode!,
+                    );
+                  },
+                  codeSent: (String verificationId, int? resendToken) {
+                    // Store new verificationId and resendToken for later use
+                    this.verificationId = verificationId;
+                    this.resendToken = resendToken;
+                  },
+                );
+              },
+              child: Text('Resend OTP'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+=============
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+import 'package:your_project_name/views/signup_view.dart';
+import 'package:your_project_name/views/otp_view.dart';
+import 'package:your_project_name/views/home_view.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: 'Firebase Auth Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      initialBinding: AuthBinding(),
+      getPages: [
+        GetPage(name: '/', page: () => SignUpView()),
+        GetPage(name: '/otp', page: () => OtpView()),
+        GetPage(name: '/home', page: () => HomeView()),
+      ],
+    );
+  }
+}
+
+
+===============
+
+
+
+import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+
+class AuthController extends GetxController {
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  GoogleSignIn _googleSignIn = GoogleSignIn();
+  Rx<User?> user = Rx<User?>(null);
+
+  @override
+  void onInit() {
+    super.onInit();
+    user.value = _auth.currentUser;
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser!.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      user.value = userCredential.user;
+    } catch (e) {
+      Get.snackbar('Sign In Error', e.toString());
+    }
+  }
+
+  Future<void> signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+
+      final AuthCredential credential = FacebookAuthProvider.credential(
+        result.accessToken!.token,
+      );
+
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      user.value = userCredential.user;
+    } catch (e) {
+      Get.snackbar('Sign In Error', e.toString());
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+      }
+      if (await FacebookAuth.instance.accessToken != null) {
+        await FacebookAuth.instance.logOut();
+      }
+      await _auth.signOut();
+      user.value = null;
+    } catch (e) {
+      Get.snackbar('Sign Out Error', e.toString());
+    }
+  }
+}
+
+
+
+
+===========================
+
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+
+class AuthBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AuthController>(() => AuthController());
+  }
+}
+
+
+
+====================
+
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+
+class LoginView extends GetWidget<AuthController> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                controller.signInWithGoogle();
+              },
+              child: Text('Sign in with Google'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                controller.signInWithFacebook();
+              },
+              child: Text('Sign in with Facebook'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+====================
+
+
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:your_project_name/controllers/auth_controller.dart';
+import 'package:your_project_name/views/login_view.dart';
+import 'package:your_project_name/views/home_view.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: 'Social Login Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      initialBinding: AuthBinding(),
+      getPages: [
+        GetPage(name: '/', page: () => LoginView()),
+        GetPage(name: '/home', page: () => HomeView()),
+      ],
+    );
+  }
+}
+
+
+
+========================================================================================
